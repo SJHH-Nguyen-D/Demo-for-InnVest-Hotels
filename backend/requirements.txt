@@ -1,0 +1,14 @@
+boto3==1.17.69
+fastapi
+SQLAlchemy
+jsonlines==2.0.0
+uvicorn[standard]
+pandas
+python-dotenv==0.17.1
+python-jose
+PyMySQL
+cryptography
+PyJWT
+urllib3==1.26.7
+requests==2.26.0
+numpy==1.22.0

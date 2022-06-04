@@ -1,0 +1,51 @@
+version: '3'
+services:
+  mysql:
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: 'yes'
+    container_name: mysql
+    image: mysql:8
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql.init.d:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+
+  backend:
+    build: ./backend
+    restart: on-failure
+    environment:
+      DB_URL: "mysql+pymysql://dennis:foobar@mysql/innvesthotels"
+      SECRET_KEY: "0251d96151fb0db14db49c437370c9f330dab8cbf8490e8865dce218150e76d4"
+      PORT: 8000
+    networks:
+      - backend
+    ports:
+      - "8000:8000"
+    container_name: backend
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: php_admin
+    restart: always
+    ports:
+      - "8081:80" # visit it at localhost:8081
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    networks:
+      - backend
+    links:
+      - "mysql:db" # user the servername 'db' when logging into phpmyadmin; mysql container is reachable from phpmyadmin via the 'db' alias
+
+volumes:
+  dbdata:
+
+networks:
+  backend:
