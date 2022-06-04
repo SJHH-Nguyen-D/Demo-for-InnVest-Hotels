@@ -14,14 +14,13 @@ def get_fk_table(hotel_df: pd.DataFrame = None, acc_df: pd.DataFrame = None):
     :param acc_df (pd.DataFrame): dataframe containing accommodation_ids
     :returns merged (pd.DataFrame): a dataframe with only the required brand column and foreign keys
     """
-    hotel_df.merge(acc_df, how="inner", on="hotel_id")
     merged = hotel_df.merge(acc_df, how="inner", left_on="id", right_on="hotel_id")[
         ["id_x", "id_y", "hotelbrandname"]
     ].rename({"id_x": "hotel_id", "id_y": "accommodation_id"}, axis=1)
     return merged
 
 
-def write_dataframe(dataframe:pd.DataFrame, out_path=""):
+def write_dataframe(dataframe: pd.DataFrame, out_path=""):
     if not os.path.exists(out_path):
         dataframe.to_csv(out_path, index=False)
         print(f"Wrote data to: {out_path}")
@@ -29,7 +28,7 @@ def write_dataframe(dataframe:pd.DataFrame, out_path=""):
 
 class TransactionDataGenerator:
     def __init__(
-        self, 
+        self,
         fks: pd.DataFrame = None,
     ):
         """
@@ -46,12 +45,15 @@ class TransactionDataGenerator:
         self.random_days_between_los = [i for i in range(1)]
         self.last_checkindate = datetime(2022, 12, 31)
         self.vfcd = datetime(
-            2017, 1, 1, 
-            self.pick(self.hrs), 
-            self.pick(self.minssecs), 
-            self.pick(self.minssecs)
+            2017,
+            1,
+            1,
+            self.pick(self.hrs),
+            self.pick(self.minssecs),
+            self.pick(self.minssecs),
         )
 
+    @staticmethod
     def pick(arr):
         return random.choice(arr)
 
@@ -64,16 +66,17 @@ class TransactionDataGenerator:
         """
         # if list empty
         # or if last accommodation unit has finished
-        if (len(self.data) < 1) or (self.data[-1]["accommodation_id"] != current_acc_id):
+        if (len(self.data) < 1) or (
+            self.data[-1]["accommodation_id"] != current_acc_id
+        ):
             return self.vfcd
         else:
-            checkindate = self.data[-1]["checkoutdate"] + timedelta(days=self.pick(self.random_days_between_los))
+            checkindate = self.data[-1]["checkoutdate"] + timedelta(
+                days=self.pick(self.random_days_between_los)
+            )
             return checkindate
 
-    def get_checkoutdate(
-        self,
-        start: datetime
-    ) -> datetime:
+    def get_checkoutdate(self, start: datetime) -> datetime:
         """
         Randomly pick checkout date based on checkindate.
 
@@ -82,17 +85,21 @@ class TransactionDataGenerator:
         """
 
         checkout_datetime = datetime.strptime(
-            (start + timedelta(days=self.pick(self.los))).strftime(f"%Y-%m-%d {self.pick(self.hrs)}:{self.pick(self.minssecs)}:{self.pick(self.minssecs)}"),
-            f"%Y-%m-%d %H:%M:%S"
+            (start + timedelta(days=self.pick(self.los))).strftime(
+                f"%Y-%m-%d {self.pick(self.hrs)}:{self.pick(self.minssecs)}:{self.pick(self.minssecs)}"
+            ),
+            f"%Y-%m-%d %H:%M:%S",
         )
         return checkout_datetime
 
-    def generate_saleamount(acc_id: str, data: pd.DataFrame = None):
+    def generate_saleamount(self, hot_id: str):
         """
         Generate the saleamount of a transaction based on the brand of hotel
         The accommodation ID belongs to.
         """
-        hotname = data.loc[data["hotel_id"] == acc_id, "hotelbrandname"].unique()[0]
+
+        hotname = self.fks.loc[
+            self.fks["hotel_id"] == hot_id, :]["hotelbrandname"].unique()
         if hotname in ("Comfort Inn", "Holiday Inn", "Holiday Inn Express"):
             base = round(np.random.uniform(165, 400), 2)
             return base + (round(base * np.random.uniform(0.0, 0.15), 2))
@@ -100,7 +107,9 @@ class TransactionDataGenerator:
             base = round(np.random.uniform(250, 650), 2)
             return base + (round(base * np.random.uniform(0.0, 0.15), 2))
 
-    def generate_transaction_dataset(self) -> pd.DataFrame:
+    def generate_transaction_dataset(self):
+    # tx_df = t.generate_transaction_dataset()
+    # write_dataframe(ction_dataset(self) -> pd.DataFrame:
         """
         :returns dataset (pd.DataFrame): Generates a DataFrame of Transactions
         """
@@ -111,17 +120,19 @@ class TransactionDataGenerator:
             most_recent_chrono_startdate = self.vfcd
             while most_recent_chrono_startdate < self.last_checkindate:
                 d = row.to_dict()
-                checkindate = self.get_checkindate(
-                    d["accommodation_id"], 
-                    self.vfcd, 
-                    self.data
-                )
+                d["id"] = str(uuid4())
+                print(d)
+                checkindate = self.get_checkindate(d["accommodation_id"])
                 d["checkindate"] = checkindate
                 d["checkoutdate"] = self.get_checkoutdate(checkindate)
                 d["methodofpayment"] = self.pick(self.mop)
-                d["saleamount"] = self.generate_saleamount(d["hotel_id"], data=fks)
+                d["saleamount"] = self.generate_saleamount(d["hotel_id"])
                 most_recent_chrono_startdate = d["checkoutdate"]
+                d.pop("hotelbrandname")
                 self.data.append(d)
+                inter = default_timer()
+                print(f"{(inter-start_time):.3f}s has elapsed.")
+
         stop_time = default_timer()
         print(f"Elapsed time for creating transactions: {(start_time-stop_time):.3f}s")
         print(f"{len(self.data)} transactions created.")
