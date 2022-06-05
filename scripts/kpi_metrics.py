@@ -27,6 +27,12 @@ def total_available_rooms(nra: int, dip: int) -> int:
     """
     return nra * dip
 
+# total available rooms in 
+total_available_rooms_sql = """
+        CREATE OR REPLACE VIEW AS TOTALAVAILABLEROOMS AS
+
+    """
+
 def average_daily_rate(trr: float, tro: int) -> float:
     """
     Calculates ADR for a hotel
