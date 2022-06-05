@@ -98,8 +98,9 @@ class TransactionDataGenerator:
         The accommodation ID belongs to.
         """
 
-        hotname = self.fks.loc[
-            self.fks["hotel_id"] == hot_id, :]["hotelbrandname"].unique()
+        hotname = self.fks.loc[self.fks["hotel_id"] == hot_id, :][
+            "hotelbrandname"
+        ].unique()
         if hotname in ("Comfort Inn", "Holiday Inn", "Holiday Inn Express"):
             base = round(np.random.uniform(165, 400), 2)
             return base + (round(base * np.random.uniform(0.0, 0.15), 2))
@@ -108,8 +109,8 @@ class TransactionDataGenerator:
             return base + (round(base * np.random.uniform(0.0, 0.15), 2))
 
     def generate_transaction_dataset(self):
-    # tx_df = t.generate_transaction_dataset()
-    # write_dataframe(ction_dataset(self) -> pd.DataFrame:
+        # tx_df = t.generate_transaction_dataset()
+        # write_dataframe(ction_dataset(self) -> pd.DataFrame:
         """
         :returns dataset (pd.DataFrame): Generates a DataFrame of Transactions
         """
