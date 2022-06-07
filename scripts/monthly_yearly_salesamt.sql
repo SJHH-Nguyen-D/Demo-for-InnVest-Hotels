@@ -1,6 +1,6 @@
-select YEAR(checkindate) [YEAR], MONTH(checkindate) [MONTH], DATENAME(MONTH, checkindate) [Month Name], SUM(saleamount) [
-                                            SALE AMT]
-                                            FROM transactions
-                                            GROUP BY YEAR(checkindate), MONTH(checkindate), DATENAME(MONTH, checkindate)
-                                            ORDER BY 1, 2
-                                            LIMIT 5;
+SELECT hotel_id, hotelfullyqualifiedname, YEAR(checkindate) as year, MONTH(checkindate) as month,  SUM(saleamount)
+FROM transactions
+LEFT JOIN hotels
+ON transactions.hotel_id = hotels.id
+GROUP BY YEAR(checkindate), MONTH(checkindate), hotel_id, HOTELFULLYQUALIFIEDNAME
+ORDER BY  3, 4;
