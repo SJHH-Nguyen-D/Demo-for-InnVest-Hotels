@@ -3,4 +3,4 @@ metastore-postgresql/*
 hdfs/*
 *cache*
 */.mypy_cache/*
-*.log
+*.log*
